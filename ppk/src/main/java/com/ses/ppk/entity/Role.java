@@ -1,4 +1,4 @@
-package com.ses.ppk.user;
+package com.ses.ppk.entity;
 
 public enum Role {
     USER,

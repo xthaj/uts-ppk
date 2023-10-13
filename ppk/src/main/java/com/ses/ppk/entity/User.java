@@ -1,4 +1,4 @@
-package com.ses.ppk.user;
+package com.ses.ppk.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -26,10 +28,19 @@ public class User implements UserDetails {
     private String password;
     private String nama;
     private String kelas;
-    private String divisi;
-    private String status_keanggotaan;
+    @Enumerated(EnumType.STRING)
+    private StatusKeanggotaan statusKeanggotaan;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @Enumerated(EnumType.STRING)
+    private Divisi divisi;
+
+    @OneToMany(mappedBy = "user")
+    private Set<MeetingAttendee> meetingsAttended = new HashSet<>();
+
+    @ManyToMany(mappedBy = "kegiatan_participants")
+    private Set<Kegiatan> kegiatan_participated = new HashSet<>();
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

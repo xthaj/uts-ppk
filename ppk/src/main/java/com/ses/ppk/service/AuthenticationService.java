@@ -4,8 +4,9 @@ import com.ses.ppk.templates.AuthenticationRequest;
 import com.ses.ppk.templates.AuthenticationResponse;
 import com.ses.ppk.templates.RegisterRequest;
 import com.ses.ppk.repository.UserRepository;
-import com.ses.ppk.user.Role;
-import com.ses.ppk.user.User;
+import com.ses.ppk.entity.Role;
+import com.ses.ppk.entity.StatusKeanggotaan;
+import com.ses.ppk.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +26,7 @@ public class AuthenticationService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
+                .statusKeanggotaan(StatusKeanggotaan.BUKAN_ANGGOTA)
                 .build();
         repository.save(user);
         var jwtToken = jwtService.generateToken(user);
