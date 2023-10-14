@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ApplyRequest {
     private String kelas;
-    private Divisi divisi;
+    private String divisi;
 }

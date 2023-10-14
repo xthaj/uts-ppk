@@ -1,12 +1,18 @@
 package com.ses.ppk.controller;
 
+import com.ses.ppk.entity.ApiResponse;
+import com.ses.ppk.entity.StatusKeanggotaan;
+import com.ses.ppk.entity.User;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ApplyRequest;
 import com.ses.ppk.templates.ChangePasswordRequest;
+import com.ses.ppk.templates.UserFullRequest;
 import com.ses.ppk.templates.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.security.Principal;
 import java.util.List;
@@ -18,39 +24,87 @@ import java.util.Optional;
 public class PendaftaranController {
     private final UserService pendaftaranService;
 
+    //workd
     @PostMapping
     public ResponseEntity<?> applyBeingMember(
-            @RequestBody ApplyRequest request,
+            @RequestBody ApplyRequest userRequest,
             Principal connectedUser
     ) {
-        // Call the service and get the response message
-        String message = pendaftaranService.apply(request, connectedUser);
 
-        if (message.contains("refused")) {
-            return ResponseEntity.badRequest().body(message);
+        String errorMessage = null;
+
+        if (!pendaftaranService.checkDivisi(userRequest.getDivisi())) {
+            errorMessage = "Invalid input for DIVISI. Refer to documentation for correct values.";
+        } else if (!pendaftaranService.checkKelas(userRequest.getKelas())) {
+            errorMessage = "Invalid input for KELAS.";
         }
-        // Return an OK response with the message
-        return ResponseEntity.ok(message);
+
+        if (errorMessage != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+        }
+
+        String applicationResult = pendaftaranService.apply(userRequest, connectedUser);
+
+        if (applicationResult.equals("Application accepted.")) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(HttpStatus.OK.value(), applicationResult));
+
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), applicationResult));
+        }
     }
 
-    @PatchMapping("/")
+    //works
+    @GetMapping
     public ResponseEntity<List<UserResponse>> seeApplicants() {
         List<UserResponse> userResponses = pendaftaranService.findAllApplicants();
         return ResponseEntity.ok(userResponses);
     }
 
+    //works
     @PatchMapping("/{username}")
-    public ResponseEntity<UserResponse> acceptApplicant(@PathVariable String username) {
-        Optional<UserResponse> userResponse = pendaftaranService.acceptApplicant(username);
+    public ResponseEntity<?> acceptApplicant(@PathVariable String username) {
+        Optional<User> userOptional = pendaftaranService.findUser(username);
 
-        return userResponse.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        if (userOptional.isPresent()) {
+            //check that the person is actually an applicant
+            User user = userOptional.get();
+            if (user.getStatusKeanggotaan() != StatusKeanggotaan.PENDAFTAR) {
+                String errorMessage = "User is not an applicant";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+            }
+
+            UserResponse userResponse = pendaftaranService.acceptApplicant(user);
+            return ResponseEntity.ok(userResponse);
+        } else {
+            String errorMessage = "User not found with username: " + username;
+            ApiResponse errorResponse = new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
+    //works
     @DeleteMapping("/{username}")
-    public ResponseEntity<UserResponse> declineApplicant(@PathVariable String username) {
-        Optional<UserResponse> userResponse = pendaftaranService.declineApplicant(username);
+    public ResponseEntity<?> declineApplicant(@PathVariable String username) {
+        Optional<User> userOptional = pendaftaranService.findUser(username);
 
-        return userResponse.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        if (userOptional.isPresent()) {
+            //check that the person is actually an applicant
+            User user = userOptional.get();
+            if (user.getStatusKeanggotaan() != StatusKeanggotaan.PENDAFTAR) {
+                String errorMessage = "User is not an applicant";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+            }
+
+            UserResponse userResponse = pendaftaranService.declineApplicant(user);
+            return ResponseEntity.ok(userResponse);
+        } else {
+            String errorMessage = "User not found with username: " + username;
+            ApiResponse errorResponse = new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
 }

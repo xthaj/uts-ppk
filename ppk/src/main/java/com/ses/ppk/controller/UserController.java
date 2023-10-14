@@ -63,26 +63,38 @@ public class UserController {
         Optional<User> userOptional = userService.findUser(username);
 
         if (userOptional.isPresent()) {
-            if (userService.isUserRequestValid(userRequest)) {
-                if (userService.uniqueUsername(username)) {
-                    UserResponse userResponse = userService.editUser(userOptional.get(), userRequest);
-                    return ResponseEntity.ok(userResponse);
-                } else {
-                    ApiResponse errorResponse = new ApiResponse(HttpStatus.CONFLICT.value(), "Username is not unique");
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-                }
-            } else {
-                String errorMessage = "Invalid input on ROLE, STATUS_KEANGGOTAAN, or DIVISI. Refer to documentation for correct values.";
-                ApiResponse errorResponse = new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            String errorMessage = null;
+
+            if (!userService.checkDivisi(userRequest.getDivisi())) {
+                errorMessage = "Invalid input for DIVISI. Refer to documentation for correct values.";
+            } else if (!userService.checkRole(userRequest.getRole())) {
+                errorMessage = "Invalid input for ROLE. Refer to documentation for correct values.";
+            } else if (!userService.checkStatus(userRequest.getStatusKeanggotaan())) {
+                errorMessage = "Invalid input for STATUS_KEANGGOTAAN. Refer to documentation for correct values.";
+            } else if (!userService.checkKelas(userRequest.getKelas())) {
+                errorMessage = "Invalid input for KELAS.";
             }
+
+            if (errorMessage != null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+            }
+
+            if (!userService.uniqueUsername(userRequest.getUsername())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ApiResponse(HttpStatus.CONFLICT.value(), "New username has been used by someone else"));
+            }
+
+            UserResponse userResponse = userService.editUser(userOptional.get(), userRequest);
+            return ResponseEntity.ok(userResponse);
+
         } else {
             String errorMessage = "User not found with username: " + username;
-            ApiResponse errorResponse = new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage));
         }
-
     }
+
     //works
     @DeleteMapping("/{username}")
     public ResponseEntity<?> deleteUser(@PathVariable String username) {

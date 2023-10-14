@@ -43,15 +43,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<UserResponse> findAllApplicants() {
-        List<User> applicants = userRepository.findByStatusKeanggotaan(StatusKeanggotaan.PENDAFTAR);
-
-        return applicants.stream()
-                .map(this::buildUserResponse)
-                .collect(Collectors.toList());
-    }
-
-    private UserResponse buildUserResponse(User user) {
+    public UserResponse buildUserResponse(User user) {
         return UserResponse.builder()
                 .username(user.getUsername())
                 .nama(user.getNama())
@@ -110,20 +102,7 @@ public class UserService {
         }
     }
 
-    public String apply (ApplyRequest request, Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
-        if (user.getStatusKeanggotaan() != StatusKeanggotaan.BUKAN_ANGGOTA) {
-            return "Application refused: User is not a member.";
-        }
-
-        user.setDivisi(request.getDivisi());
-        user.setKelas(request.getKelas());
-        user.setStatusKeanggotaan(StatusKeanggotaan.PENDAFTAR);
-        userRepository.save(user);
-        return "Application accepted.";
-
-    }
 
     public void toAdmin(Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -132,58 +111,97 @@ public class UserService {
     }
 
     //    application section
-    public Optional<UserResponse> acceptApplicant(String username) {
-        Optional<User> applicantOptional = userRepository.findByUsername(username);
+    public String apply (ApplyRequest request, Principal connectedUser) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
-        if (applicantOptional.isPresent()) {
-            User applicant = applicantOptional.get();
-            applicant.setStatusKeanggotaan(StatusKeanggotaan.ANGGOTA);
-            return Optional.of(buildUserResponse(applicant));
+        if (user.getStatusKeanggotaan() == StatusKeanggotaan.ANGGOTA) {
+            return "Application refused: User is already a member.";
         }
-        return Optional.empty();
+
+        if (user.getStatusKeanggotaan() == StatusKeanggotaan.PENDAFTAR) {
+            return "Application refused: User has applied to be a member.";
+        }
+
+        user.setStatusKeanggotaan(StatusKeanggotaan.PENDAFTAR);
+        user.setKelas(request.getKelas());
+        user.setDivisi(Divisi.valueOf(request.getDivisi()));
+        userRepository.save(user);
+        return "Application accepted.";
+
     }
 
-    public Optional<UserResponse> declineApplicant(String username) {
-        Optional<User> applicantOptional = userRepository.findByUsername(username);
+    public List<UserResponse> findAllApplicants() {
+        List<User> applicants = userRepository.findByStatusKeanggotaan(StatusKeanggotaan.PENDAFTAR);
 
-        if (applicantOptional.isPresent()) {
-            User applicant = applicantOptional.get();
-            applicant.setStatusKeanggotaan(StatusKeanggotaan.BUKAN_ANGGOTA);
-            applicant.setDivisi(null);
-            return Optional.of(buildUserResponse(applicant));
-        }
-        return Optional.empty();
+        return applicants.stream()
+                .map(this::buildUserResponse)
+                .collect(Collectors.toList());
     }
 
-    public boolean isUserRequestValid(UserFullRequest userRequest) {
+    public UserResponse acceptApplicant(User applicant) {
+        applicant.setStatusKeanggotaan(StatusKeanggotaan.ANGGOTA);
+        userRepository.save(applicant);
+        return buildUserResponse(applicant);
+    }
+
+    public UserResponse declineApplicant(User applicant) {
+        applicant.setStatusKeanggotaan(StatusKeanggotaan.BUKAN_ANGGOTA);
+        applicant.setDivisi(null);
+        userRepository.save(applicant);
+        return buildUserResponse(applicant);
+    }
+
+
+    public boolean isUserApplicatioValid(ApplyRequest userRequest) {
         try {
             Divisi.valueOf(userRequest.getDivisi());
         } catch (IllegalArgumentException e) {
-//            System.out.println("false1");
             return false;
         }
-
-        try {
-            Role.valueOf(userRequest.getRole());
-        } catch (IllegalArgumentException e) {
-//            System.out.println("false2");
-            return false;
-        }
-
-        try {
-            StatusKeanggotaan.valueOf(userRequest.getStatusKeanggotaan());
-        } catch (IllegalArgumentException e) {
-//            System.out.println("false3");
-            return false;
-        }
-
-        System.out.println("true");
         return true;
     }
 
     public boolean uniqueUsername(String username) {
         Optional<User> existingUser = userRepository.findByUsername(username);
         return existingUser.isEmpty();
+    }
+
+    public boolean checkDivisi(String divisi) {
+        if (divisi == null) {
+            return true; // Accept null values
+        }
+        try {
+            Divisi.valueOf(divisi);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkRole(String role) {
+        try {
+            Role.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkStatus(String status) {
+        try {
+            StatusKeanggotaan.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean checkKelas(String kelas) {
+        if (kelas == null) {
+            return true; // Accept null values
+        }
+        String regexPattern = "^[1-2](ST|KS|D3)[1-6]$|^[3-4](SE|SK|SI|SD)[1-6]$";
+        return kelas.matches(regexPattern);
     }
 
 
