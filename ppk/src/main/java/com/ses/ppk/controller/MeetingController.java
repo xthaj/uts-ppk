@@ -2,9 +2,11 @@ package com.ses.ppk.controller;
 
 import com.ses.ppk.entity.ApiResponse;
 import com.ses.ppk.entity.Meeting;
+import com.ses.ppk.entity.MeetingAttendee;
 import com.ses.ppk.entity.User;
 import com.ses.ppk.service.AuthenticationService;
 import com.ses.ppk.service.MeetingService;
+import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MeetingController {
     private final MeetingService meetingService;
+    private final UserService userService;
+    //works
 
     @PostMapping
     public ResponseEntity<?> createMeeting (
@@ -37,13 +41,33 @@ public class MeetingController {
                 .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruangan harus berada antara gedung 2 atau 3, lantai yang sesuai, dan nomor ruang yang sesuai"));
     }
 
+    //works
     @PutMapping("/{id}")
     public ResponseEntity<?> editMeeting (
             @PathVariable int id,
-            @RequestBody CreateMeetingRequest request
+            @RequestBody EditMeetingRequest request
     ) {
         if (meetingService.checkMeetingExists(id)) {
+            String errorMessage = null;
+
             if (meetingService.checkRuang(request.getRuang())) {
+                if (request.getMeetingDate()==null) {
+                    errorMessage = "meetingDate should not be NULL. Please input original value if you don't want to change it.";
+                } else if (request.getMeetingName()==null) {
+                    errorMessage = "meetingName should not be NULL. Please input original value if you don't want to change it.";
+                } else if ((request.getMeetingSummary()==null)) {
+                    errorMessage = "meetingSummary should not be NULL. Please input original value if you don't want to change it.";
+                } else if ((request.getRuang()==null)) {
+                    errorMessage = "ruang should not be NULL. Please input original value if you don't want to change it.";
+                } else if (!request.getMeetingDate().matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    errorMessage = "meetingDate format is incorrect. Use YYYY-MM-DD";
+                }
+
+                if (errorMessage != null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+                }
+
                 Meeting meeting = meetingService.getMeeting(id);
                 return ResponseEntity.ok(meetingService.editMeeting(meeting, request));
             }
@@ -54,38 +78,39 @@ public class MeetingController {
 
     }
 
+    //normal works
+    //sort works
+    //filter works yippeee
     @GetMapping
-    public ResponseEntity<List<Meeting>> getMeetings(
+    public ResponseEntity<?> getMeetings(
             @RequestParam(name = "sort", defaultValue = "asc") String sortOrder,
             @RequestParam(name = "start_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
             @RequestParam(name = "end_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end_date
     ) {
-        List<Meeting> meetings = new ArrayList<>();
-
-        if ("asc".equalsIgnoreCase(sortOrder)) {
-            meetings = meetingService.findAllByOrderByMeetingDateAsc();
-        } else if ("desc".equalsIgnoreCase(sortOrder)) {
-            meetings = meetingService.findAllByOrderByMeetingDateDesc();
-        }
+        List<MeetingResponse> meetings = new ArrayList<>();
 
         if (start_date != null && end_date != null) {
-            // Filter meetings within the specified date range
-            meetings = meetings.stream()
-                    .filter(meeting -> meeting.getMeetingDate().isAfter(start_date) && meeting.getMeetingDate().isBefore(end_date.plusDays(1)))
-                    .collect(Collectors.toList());
+            meetings = meetingService.getMeetingsByDateRange(start_date, end_date);
+        } else if ("desc".equalsIgnoreCase(sortOrder)) {
+            meetings = meetingService.findAllByOrderByMeetingDateDesc();
+        } else {
+            meetings = meetingService.findAllByOrderByMeetingDateAsc();
         }
 
         return ResponseEntity.ok(meetings);
     }
 
 
-
+    //works
     @GetMapping("/{id}")
     public ResponseEntity<?> getMeeting(
             @PathVariable int id
     ) {
+        System.out.println(id);
+        System.out.println(meetingService.checkMeetingExists(id));
+
         if (meetingService.checkMeetingExists(id)) {
-            Meeting foundMeeting = meetingService.getMeeting(id);
+            MeetingResponse foundMeeting = meetingService.getMeetingResponse(id);
             return ResponseEntity.ok(foundMeeting);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");
@@ -98,7 +123,6 @@ public class MeetingController {
     ) {
         List<MemberResponse> memberResponses = meetingService.getMeetingAttendees(id);
         return ResponseEntity.ok(memberResponses);
-
     }
 
     @DeleteMapping ("/{id}")
@@ -109,7 +133,7 @@ public class MeetingController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Meeting deleted successfully"));
     }
 
-
+    //works
     @PostMapping("/{id}/members")
     public ResponseEntity<?> attendMeeting(
             @PathVariable int id,
@@ -123,18 +147,26 @@ public class MeetingController {
         }
     }
 
-    @DeleteMapping ("/{id}/members/{username}")
+
+    //works
+    @DeleteMapping ("/{meeting_id}/members/{username}")
     public ResponseEntity<?> deleteMeetingAttendee(
-            @PathVariable int id,
-            Principal connectedUser
+            @PathVariable int meeting_id,
+            @PathVariable String username
     ) {
-        if (meetingService.checkMeetingExists(id)) {
-            meetingService.attendMeeting(id, connectedUser);
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Meeting attendance removed from the meeting"));
+        Optional<Meeting> meeting = meetingService.findByMeetingId(meeting_id);
+        Optional<User> user = userService.findUser(username);
+        Optional<MeetingAttendee> meetingAttendee = Optional.ofNullable(meetingService.getMeetingAttendee(meeting.get(), user.get()));
 
-
-        } else {
+        if (meeting.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");
+        } else if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } else if (meetingService.checkMeetingAttendeeExists(meeting.get(), user.get())) {
+            meetingService.deleteMeetingAttendee(meetingAttendee.get());
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Absensi berhasil dihapus"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Absensi tidak ditemukan");
         }
     }
 }

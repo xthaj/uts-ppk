@@ -10,6 +10,8 @@ import com.ses.ppk.repository.MeetingAttendeeRepository;
 import com.ses.ppk.repository.MeetingRepository;
 import com.ses.ppk.repository.UserRepository;
 import com.ses.ppk.templates.CreateMeetingRequest;
+import com.ses.ppk.templates.EditMeetingRequest;
+import com.ses.ppk.templates.MeetingResponse;
 import com.ses.ppk.templates.MemberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,10 +20,12 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,27 +42,69 @@ public class MeetingService {
         String regexPattern = "^[2][2-6][1-8]$|^[3][2-4][1-8]$";
         return kelas.matches(regexPattern);
     }
-    public Meeting createMeeting(CreateMeetingRequest request) {
+    public MeetingResponse createMeeting(CreateMeetingRequest request) {
         Meeting meeting = new Meeting();
         meeting.setMeetingDate(LocalDate.now());
         meeting.setRuang(request.getRuang());
         meeting.setMeetingName(request.getMeetingName());
         meeting.setMeetingSummary(request.getMeetingSummary());
         Meeting createdMeeting = meetingRepository.save(meeting);
-        return createdMeeting;
+
+        return buildMeetingResponse(createdMeeting);
     }
+
+    public MeetingResponse buildMeetingResponse(Meeting meeting) {
+        return MeetingResponse.builder()
+                .meetingName(meeting.getMeetingName())
+                .meetingDate(dateFormatter(meeting.getMeetingDate()))
+                .ruang(meeting.getRuang())
+                .meetingSummary(meeting.getMeetingSummary())
+                .build();
+    }
+
+    public String dateFormatter(LocalDate time) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return formatter.format(time);
+    }
+
 
     public List<Meeting> getAllMeetings() {
         return meetingRepository.findAll();
     }
 
     public boolean checkMeetingExists(int id) {
-        Optional<Meeting> existingMeeting = meetingRepository.findById(id);
-        return existingMeeting.isEmpty();
+        Optional<Meeting> existingMeeting = meetingRepository.findByMeetingId(id);
+        return existingMeeting.isPresent();
     }
+
+    public Optional<Meeting> findByMeetingId(int id) {
+        return meetingRepository.findByMeetingId(id);
+    }
+
+    public boolean checkMeetingAttendeeExists(Meeting meeting, User user) {
+//        System.out.println(meeting.getMeetingId());
+//        System.out.println(user.getId());
+
+        MeetingAttendee existingMeetingAttendee = meetingAttendeeRepository.findByMeetingAndUser(meeting, user);
+        return existingMeetingAttendee != null;
+
+    }
+
+    public MeetingAttendee getMeetingAttendee(Meeting meeting, User user) {
+        MeetingAttendee meetingAttendee = meetingAttendeeRepository.findByMeetingAndUser(meeting, user);
+        return meetingAttendee;
+    }
+
     public Meeting getMeeting(int id) {
-        return meetingRepository.findById(id)
+        return meetingRepository.findByMeetingId(id)
                 .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
+    }
+
+    public MeetingResponse getMeetingResponse(int id) {
+        Meeting meeting = meetingRepository.findById(id)
+                .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
+
+        return buildMeetingResponse(meeting);
     }
 
     public void deleteMeeting(int id) {
@@ -66,32 +112,45 @@ public class MeetingService {
     }
 
     public List<MemberResponse> getMeetingAttendees(int meetingId) {
-        Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + meetingId));
-
+        List<MeetingAttendee> meetingAttendees = meetingAttendeeRepository.findAllByMeeting(meetingRepository.findById(meetingId).get());
         List<MemberResponse> attendeesInfo = new ArrayList<>();
 
-        for (MeetingAttendee attendee : meeting.getAttendees()) {
-            User user = userRepository.findById(attendee.getUser().getId())
-                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + attendee.getUser().getId()));
+        for (MeetingAttendee meetingAttendee : meetingAttendees) {
+            User user = meetingAttendee.getUser();
+            MemberResponse memberResponse = new MemberResponse();
+            memberResponse.setName(user.getNama());
+            memberResponse.setDivisi(user.getDivisi());
 
-            MemberResponse memberResponse = new MemberResponse(user.getNama(), user.getDivisi());
+            LocalDateTime timeOfAttendance = meetingAttendee.getTimeOfAttendance();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            memberResponse.setTime(timeOfAttendance.format(formatter));
+
             attendeesInfo.add(memberResponse);
         }
-
         return attendeesInfo;
     }
 
-    public List<Meeting> findAllByOrderByMeetingDateAsc() {
-        return meetingRepository.findTop10ByOrderByMeetingDateAsc();
+    public List<MeetingResponse> findAllByOrderByMeetingDateAsc() {
+        List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateAsc();
+        return meetings.stream()
+                .map(this::buildMeetingResponse)
+                .collect(Collectors.toList());
     }
 
-    public List<Meeting> findAllByOrderByMeetingDateDesc() {
-        return meetingRepository.findTop10ByOrderByMeetingDateAsc();
+    public List<MeetingResponse> findAllByOrderByMeetingDateDesc() {
+        List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateAsc();
+        return meetings.stream()
+                .map(this::buildMeetingResponse)
+                .collect(Collectors.toList());
+
     }
 
-    public List<Meeting> getMeetingsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return meetingRepository.findByMeetingDateBetween(startDate, endDate);
+    public List<MeetingResponse> getMeetingsByDateRange(LocalDate startDate, LocalDate endDate) {
+        List<Meeting> meetings = meetingRepository.findByMeetingDateBetween(startDate, endDate);
+
+        return meetings.stream()
+                .map(this::buildMeetingResponse)
+                .collect(Collectors.toList());
     }
 
     public String attendMeeting(int id, Principal connectedUser) {
@@ -104,6 +163,10 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
 
+        if (checkMeetingAttendeeExists(meeting, user)) {
+            return "Member telah menghadiri meeting";
+        }
+
         MeetingAttendee meetingAttendee = new MeetingAttendee();
         meetingAttendee.setUser(user);
         meetingAttendee.setMeeting(meeting);
@@ -113,25 +176,19 @@ public class MeetingService {
         return "Absensi telah dicatat";
     }
 
-    public void deleteMeetingAttendee(int meetingId, User user) {
-        Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + meetingId));
-
-        MeetingAttendee meetingAttendee = meetingAttendeeRepository.findByMeetingAndUser(meeting, user);
-
-        if (meetingAttendee != null) {
-            meetingAttendeeRepository.delete(meetingAttendee);
-        }
+    public void deleteMeetingAttendee(MeetingAttendee meetingAttendee) {
+        meetingAttendeeRepository.delete(meetingAttendee);
     }
 
-
-    public Meeting editMeeting(Meeting meeting, CreateMeetingRequest request) {
+    public MeetingResponse editMeeting(Meeting meeting, EditMeetingRequest request) {
         meeting.setRuang(request.getRuang());
         meeting.setMeetingName(request.getMeetingName());
         meeting.setMeetingSummary(request.getMeetingSummary());
+        meeting.setMeetingDate(LocalDate.parse(request.getMeetingDate()));
 
         Meeting updatedMeeting = meetingRepository.save(meeting);
 
-        return updatedMeeting;
+        return buildMeetingResponse(updatedMeeting);
     }
+
 }

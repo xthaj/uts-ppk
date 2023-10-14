@@ -161,7 +161,7 @@ public class UserService {
         return true;
     }
 
-    public boolean uniqueUsername(String username) {
+    public boolean userExists(String username) {
         Optional<User> existingUser = userRepository.findByUsername(username);
         return existingUser.isEmpty();
     }

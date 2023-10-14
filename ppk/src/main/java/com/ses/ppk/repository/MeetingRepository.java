@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface MeetingRepository extends JpaRepository<Meeting, Integer> {
+    Optional<Meeting> findByMeetingId(Integer integer);
     List<Meeting> findTop10ByOrderByMeetingDateAsc();
     List<Meeting> findTop10ByOrderByMeetingDateDesc();
     List<Meeting> findAllByOrderByMeetingDateAsc();

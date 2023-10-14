@@ -80,7 +80,7 @@ public class UserController {
                         .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
             }
 
-            if (!userService.uniqueUsername(userRequest.getUsername())) {
+            if (!userService.userExists(userRequest.getUsername())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(new ApiResponse(HttpStatus.CONFLICT.value(), "New username has been used by someone else"));
             }
