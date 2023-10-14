@@ -23,7 +23,7 @@ public class UserController {
     private final UserService userService;
 
     //works
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<?> findAllUsers() {
         List<UserResponse> userResponses = userService.findAllUsers();
         return ResponseEntity.ok(userResponses);

@@ -29,5 +29,4 @@ public class Meeting {
 
     @OneToMany(mappedBy = "meeting")
     private Set<MeetingAttendee> attendees = new HashSet<>();
-
 }
