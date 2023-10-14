@@ -10,12 +10,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
+@EnableWebMvc
 @RequiredArgsConstructor
 public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
@@ -32,14 +34,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
-                                .requestMatchers(GET, "/api/v1/users").hasAnyRole(Role.ADMIN.name())
-                                .requestMatchers("/api/v1/users/**").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
-                                .requestMatchers(GET,"/api/v1/applicants/**")
-                                .hasAnyRole(Role.ADMIN.name())
-                                .requestMatchers(PATCH,"/api/v1/applicants/**")
-                                .hasAnyRole(Role.ADMIN.name())
-                                .requestMatchers(DELETE,"/api/v1/applicants/**")
-                                .hasAnyRole(Role.ADMIN.name())
+//                                .requestMatchers(GET, "/api/v1/users").hasAnyRole(Role.ADMIN.name())
+//                                .requestMatchers("/api/v1/users/**").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
+//                                .requestMatchers(GET,"/api/v1/applicants/**")
+//                                .hasAnyRole(Role.ADMIN.name())
+//                                .requestMatchers(PATCH,"/api/v1/applicants/**")
+//                                .hasAnyRole(Role.ADMIN.name())
+//                                .requestMatchers(DELETE,"/api/v1/applicants/**")
+//                                .hasAnyRole(Role.ADMIN.name())
 //                                .requestMatchers(POST, "api/v1/users/**")
 //                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
 //                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())

@@ -1,5 +1,6 @@
 package com.ses.ppk.service;
 
+import com.ses.ppk.entity.Divisi;
 import com.ses.ppk.entity.Role;
 import com.ses.ppk.repository.UserRepository;
 import com.ses.ppk.templates.ApplyRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,17 +62,17 @@ public class UserService {
                 .build();
     }
 
-    public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
-
+    public String changePassword(ChangePasswordRequest request, Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
         // check if the current password is correct
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalStateException("Wrong password");
+            return "Wrong password";
         }
+
         // check if the two new passwords are the same
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-            throw new IllegalStateException("Password are not the same");
+            return "Passwords do not match";
         }
 
         // update the password
@@ -78,23 +80,26 @@ public class UserService {
 
         // save the new password
         userRepository.save(user);
+
+        return "Password has been changed";
     }
 
-    public Optional<UserResponse> editUser(User user, UserFullRequest userRequest) {
-        //edit user
+
+    public UserResponse editUser(User user, UserFullRequest userRequest) {
         user.setUsername(userRequest.getUsername());
         user.setNama(userRequest.getNama());
         user.setKelas(userRequest.getKelas());
-        user.setDivisi(userRequest.getDivisi());
+        user.setDivisi(Divisi.valueOf(userRequest.getDivisi()));
 
-        user.setRole(userRequest.getRole());
-        user.setStatusKeanggotaan(userRequest.getStatusKeanggotaan());
+        user.setRole(Role.valueOf(userRequest.getRole()));
+        user.setStatusKeanggotaan(StatusKeanggotaan.valueOf(userRequest.getStatusKeanggotaan()));
+        userRepository.save(user);
 
         UserResponse updatedUserResponse = buildUserResponse(user);
 
-        return Optional.of(updatedUserResponse);
-
+        return updatedUserResponse;
     }
+
 
     public void deleteUser(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -122,9 +127,8 @@ public class UserService {
 
     public void toAdmin(Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-
         user.setRole(Role.ADMIN);
-        return;
+        userRepository.save(user);
     }
 
     //    application section
@@ -150,4 +154,37 @@ public class UserService {
         }
         return Optional.empty();
     }
+
+    public boolean isUserRequestValid(UserFullRequest userRequest) {
+        try {
+            Divisi.valueOf(userRequest.getDivisi());
+        } catch (IllegalArgumentException e) {
+//            System.out.println("false1");
+            return false;
+        }
+
+        try {
+            Role.valueOf(userRequest.getRole());
+        } catch (IllegalArgumentException e) {
+//            System.out.println("false2");
+            return false;
+        }
+
+        try {
+            StatusKeanggotaan.valueOf(userRequest.getStatusKeanggotaan());
+        } catch (IllegalArgumentException e) {
+//            System.out.println("false3");
+            return false;
+        }
+
+        System.out.println("true");
+        return true;
+    }
+
+    public boolean uniqueUsername(String username) {
+        Optional<User> existingUser = userRepository.findByUsername(username);
+        return existingUser.isEmpty();
+    }
+
+
 }

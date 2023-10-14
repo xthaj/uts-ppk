@@ -50,7 +50,7 @@ public class MeetingService {
         meetingRepository.deleteById(id);
     }
 
-    public List<User> getMeetingAttendees(int id) {
+//    public List<User> getMeetingAttendees(int id) {
 //        Meeting meeting = meetingRepository.findById(id)
 //                .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
 //
@@ -62,7 +62,7 @@ public class MeetingService {
 //
 //        return attendees;
 //        return;
-    }
+//    }
 
     public void attendMeeting(int id, Principal connectedUser) {
 //        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();

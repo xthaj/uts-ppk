@@ -16,7 +16,7 @@ public class UserFullRequest {
     private String username;
     private String nama;
     private String kelas;
-    private Divisi divisi;
-    private Role role;
-    private StatusKeanggotaan statusKeanggotaan;
+    private String divisi;
+    private String role;
+    private String statusKeanggotaan;
 }

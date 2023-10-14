@@ -1,6 +1,8 @@
 spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
   datasource:
-    url: jdbc:mysql://localhost:3306/uts_ppk
+    url: jdbc:mysql://localhost:3306/uts-ppk
     username: root
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -27,7 +27,7 @@ public class Meeting {
     private String meetingName;
     private String meetingSummary;
 
-    @OneToMany(mappedBy = "_meeting")
+    @OneToMany(mappedBy = "meeting")
     private Set<MeetingAttendee> attendees = new HashSet<>();
 
 }

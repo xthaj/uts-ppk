@@ -49,7 +49,9 @@ public class MeetingController {
     public ResponseEntity<?> getMeetingAttendees(
             @PathVariable int id
     ) {
-        return ResponseEntity.ok(meetingService.getMeetingAttendees(id));
+//        return ResponseEntity.ok(meetingService.getMeetingAttendees(id));
+        return ResponseEntity.ok("User marked for having attended the meeting");
+
     }
 
     @PostMapping("/{id}/members")
@@ -57,7 +59,7 @@ public class MeetingController {
             @PathVariable int id,
             Principal connectedUser
     ) {
-        meetingService.attendMeeting(id, connectedUser);
+//        meetingService.attendMeeting(id, connectedUser);
         return ResponseEntity.ok("User marked for having attended the meeting");
     }
 
@@ -66,7 +68,7 @@ public class MeetingController {
             @PathVariable int id,
             @PathVariable String username
     ) {
-        meetingService.deleteMeetingAttendee(id, username);
+//        meetingService.deleteMeetingAttendee(id, username);
         return ResponseEntity.ok().build();
     }
 }

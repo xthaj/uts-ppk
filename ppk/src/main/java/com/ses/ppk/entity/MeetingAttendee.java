@@ -26,7 +26,5 @@ public class MeetingAttendee {
     private User user;
 
     private LocalDateTime timeOfAttendance;
-
-    // Constructors, getters, and setters
 }
 
