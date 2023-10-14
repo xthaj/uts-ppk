@@ -108,6 +108,7 @@ public class MeetingService {
     }
 
     public void deleteMeeting(int id) {
+        meetingAttendeeRepository.deleteAllByMeeting(findByMeetingId(id).get());
         meetingRepository.deleteById(id);
     }
 

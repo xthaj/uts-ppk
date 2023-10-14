@@ -11,4 +11,6 @@ public interface MeetingAttendeeRepository extends JpaRepository<MeetingAttendee
     MeetingAttendee findByMeetingAndUser(Meeting meeting, User user);
 
     List<MeetingAttendee> findAllByMeeting(Meeting meeting);
+
+    Void deleteAllByMeeting(Meeting meeting);
 }

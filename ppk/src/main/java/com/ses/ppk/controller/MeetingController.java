@@ -117,6 +117,7 @@ public class MeetingController {
         }
     }
 
+    //works
     @GetMapping("/{id}/members")
     public ResponseEntity<?> getMeetingAttendees(
             @PathVariable int id
