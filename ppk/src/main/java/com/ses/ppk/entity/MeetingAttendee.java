@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "_meeting_attendee")
-public class MeetingAttendee extends User {
+public class MeetingAttendee {
     @Id
     @GeneratedValue
     private Long id;
