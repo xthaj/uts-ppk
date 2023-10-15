@@ -102,8 +102,6 @@ public class UserService {
         }
     }
 
-
-
     public void toAdmin(Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         user.setRole(Role.ADMIN);

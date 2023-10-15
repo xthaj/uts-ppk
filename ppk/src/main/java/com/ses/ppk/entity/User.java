@@ -38,13 +38,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private Set<MeetingAttendee> meetingsAttended = new HashSet<>();
 
-    @ManyToMany(mappedBy = "kegiatan_participants")
-    private Set<Kegiatan> kegiatan_participated = new HashSet<>();
-
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return role.getAuthorities();
     }
 
     @Override
