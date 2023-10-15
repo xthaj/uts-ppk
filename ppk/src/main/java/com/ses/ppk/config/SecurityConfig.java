@@ -22,7 +22,12 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
-            "/swagger-ui.html"};
+            "/v1/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**"
+    };
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthFilter;
 
@@ -34,13 +39,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
-                                .requestMatchers(PUT, "api/v1/users/**").hasRole(Role.ADMIN.name())
-                                .requestMatchers(DELETE, "api/v1/users/*").hasRole(Role.ADMIN.name())
-                                .requestMatchers(POST, "api/v1/meetings").hasRole(Role.ADMIN.name())
-                                .requestMatchers(PUT, "api/v1/meetings/**").hasRole(Role.ADMIN.name())
-                                .requestMatchers(DELETE, "api/v1/meetings/**").hasRole(Role.ADMIN.name())
-                                .requestMatchers(PATCH, "api/v1/applicants/**").hasRole(Role.ADMIN.name())
-                                .requestMatchers(DELETE, "api/v1/applicants/**").hasRole(Role.ADMIN.name())
+                                .requestMatchers(PUT, "api/v1/users/**").hasRole("ADMIN")
+                                .requestMatchers(DELETE, "api/v1/users/*").hasRole("ADMIN")
+                                .requestMatchers(POST, "api/v1/meetings").hasRole("ADMIN")
+                                .requestMatchers(PUT, "api/v1/meetings/**").hasRole("ADMIN")
+                                .requestMatchers(DELETE, "api/v1/meetings/**").hasRole("ADMIN")
+                                .requestMatchers(PATCH, "api/v1/applicants/**").hasRole("ADMIN")
+                                .requestMatchers(DELETE, "api/v1/applicants/**").hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated()
                 )

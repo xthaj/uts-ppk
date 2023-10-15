@@ -1,13 +1,16 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.entity.ApiResponse;
+import com.ses.ppk.templates.CustomApiResponse;
 import com.ses.ppk.entity.Meeting;
 import com.ses.ppk.entity.MeetingAttendee;
 import com.ses.ppk.entity.User;
-import com.ses.ppk.service.AuthenticationService;
 import com.ses.ppk.service.MeetingService;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,7 +22,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/meetings")
@@ -29,6 +31,13 @@ public class MeetingController {
     private final UserService userService;
     //works
 
+    @Operation(summary = "Create a meeting")
+    @ApiResponse(responseCode = "200", description = "Meeting created successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid input",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @PostMapping
     public ResponseEntity<?> createMeeting (
             @RequestBody CreateMeetingRequest request
@@ -38,10 +47,20 @@ public class MeetingController {
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruangan harus berada antara gedung 2 atau 3, lantai yang sesuai, dan nomor ruang yang sesuai"));
+                .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruangan harus berada antara gedung 2 atau 3, lantai yang sesuai, dan nomor ruang yang sesuai"));
     }
 
     //works
+    @Operation(summary = "Edit a meeting by ID")
+    @ApiResponse(responseCode = "200", description = "Meeting edited successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid input",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Meeting not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @PutMapping("/{id}")
     public ResponseEntity<?> editMeeting (
             @PathVariable int id,
@@ -65,15 +84,15 @@ public class MeetingController {
 
                 if (errorMessage != null) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+                            .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
                 }
 
                 Meeting meeting = meetingService.getMeeting(id);
                 return ResponseEntity.ok(meetingService.editMeeting(meeting, request));
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruang is incorrect."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruang is incorrect."));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Meeting not found."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Meeting not found."));
         }
 
     }
@@ -81,6 +100,10 @@ public class MeetingController {
     //normal works
     //sort works
     //filter works yippeee
+    @Operation(summary = "Get meetings")
+    @ApiResponse(responseCode = "200", description = "List of meetings",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponseWithId.class))
+    )
     @GetMapping
     public ResponseEntity<?> getMeetings(
             @RequestParam(name = "sort", defaultValue = "desc") String sortOrder,
@@ -102,6 +125,13 @@ public class MeetingController {
 
 
     //works
+    @Operation(summary = "Get a meeting by ID")
+    @ApiResponse(responseCode = "200", description = "Meeting information",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Meeting not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @GetMapping("/{id}")
     public ResponseEntity<?> getMeeting(
             @PathVariable int id
@@ -118,6 +148,10 @@ public class MeetingController {
     }
 
     //works
+    @Operation(summary = "Get members of a meeting by ID")
+    @ApiResponse(responseCode = "200", description = "List of meeting attendees",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MemberResponse.class))
+    )
     @GetMapping("/{id}/members")
     public ResponseEntity<?> getMeetingAttendees(
             @PathVariable int id
@@ -126,15 +160,29 @@ public class MeetingController {
         return ResponseEntity.ok(memberResponses);
     }
 
+    @Operation(summary = "Delete a meeting by ID")
+    @ApiResponse(responseCode = "200", description = "Meeting deleted successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Meeting not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @DeleteMapping ("/{id}")
     public ResponseEntity<?> deleteMeeting(
             @PathVariable int id
     ) {
         meetingService.deleteMeeting(id);
-        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Meeting deleted successfully"));
+        return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), "Meeting deleted successfully"));
     }
 
     //works
+    @Operation(summary = "Attend a meeting by ID")
+    @ApiResponse(responseCode = "200", description = "Successfully attended the meeting",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Meeting not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @PostMapping("/{id}/members")
     public ResponseEntity<?> attendMeeting(
             @PathVariable int id,
@@ -142,7 +190,7 @@ public class MeetingController {
     ) {
         if (meetingService.checkMeetingExists(id)) {
             String message = meetingService.attendMeeting(id, connectedUser);
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), message));
+            return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), message));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");
         }
@@ -150,6 +198,13 @@ public class MeetingController {
 
 
     //works
+    @Operation(summary = "Delete meeting attendee")
+    @ApiResponse(responseCode = "200", description = "Meeting attendee deleted successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Meeting or user not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @DeleteMapping ("/{meeting_id}/members/{username}")
     public ResponseEntity<?> deleteMeetingAttendee(
             @PathVariable int meeting_id,
@@ -165,7 +220,7 @@ public class MeetingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         } else if (meetingService.checkMeetingAttendeeExists(meeting.get(), user.get())) {
             meetingService.deleteMeetingAttendee(meetingAttendee.get());
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Absensi berhasil dihapus"));
+            return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), "Absensi berhasil dihapus"));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Absensi tidak ditemukan");
         }
