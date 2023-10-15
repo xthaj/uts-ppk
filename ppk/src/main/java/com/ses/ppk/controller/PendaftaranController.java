@@ -6,6 +6,10 @@ import com.ses.ppk.entity.User;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ApplyRequest;
 import com.ses.ppk.templates.UserResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +28,13 @@ public class PendaftaranController {
     private final UserService pendaftaranService;
 
     //workd
+    @Operation(summary = "Apply to become a member")
+    @ApiResponse(responseCode = "200", description = "Application accepted",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid input",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
     @PostMapping
     public ResponseEntity<?> applyBeingMember(
             @RequestBody ApplyRequest userRequest,
@@ -54,6 +65,10 @@ public class PendaftaranController {
     }
 
     //works
+    @Operation(summary = "See all applicants")
+    @ApiResponse(responseCode = "200", description = "List of applicants",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))
+    )
     @GetMapping
     public ResponseEntity<List<UserResponse>> seeApplicants() {
         List<UserResponse> userResponses = pendaftaranService.findAllApplicants();
@@ -61,6 +76,19 @@ public class PendaftaranController {
     }
 
     //works
+    @Operation(summary = "Accept an applicant by username")
+    @ApiResponse(responseCode = "200", description = "Applicant accepted",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid input",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "User not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
     @PatchMapping("/{username}")
     public ResponseEntity<?> acceptApplicant(@PathVariable String username) {
         Optional<User> userOptional = pendaftaranService.findUser(username);
@@ -84,6 +112,19 @@ public class PendaftaranController {
     }
 
     //works
+    @Operation(summary = "Decline an applicant by username")
+    @ApiResponse(responseCode = "200", description = "Applicant declined",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid input",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "404", description = "User not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
+    )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
     @DeleteMapping("/{username}")
     public ResponseEntity<?> declineApplicant(@PathVariable String username) {
         Optional<User> userOptional = pendaftaranService.findUser(username);

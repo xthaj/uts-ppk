@@ -37,7 +37,7 @@ public class AuthenticationController {
     public ResponseEntity<?> register (
             @RequestBody RegisterRequest request
     ) {
-        if (!userService.userExists(request.getUsername())) {
+        if (userService.userExists(request.getUsername())) {
             return ResponseEntity.ok(service.register(request));
         } else {
             CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.CONFLICT.value(), "Username is not unique");

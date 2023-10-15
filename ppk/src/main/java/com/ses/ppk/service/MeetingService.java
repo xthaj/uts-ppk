@@ -10,6 +10,7 @@ import com.ses.ppk.repository.MeetingAttendeeRepository;
 import com.ses.ppk.repository.MeetingRepository;
 import com.ses.ppk.repository.UserRepository;
 import com.ses.ppk.templates.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -114,10 +115,16 @@ public class MeetingService {
         return buildMeetingResponse(meeting);
     }
 
+    @Transactional
     public void deleteMeeting(int id) {
-        meetingAttendeeRepository.deleteAllByMeeting(findByMeetingId(id).get());
-        meetingRepository.deleteById(id);
+        Meeting meeting = meetingRepository.findById(id).orElse(null);
+
+        if (meeting != null) {
+            meetingAttendeeRepository.deleteAllByMeeting(meeting);
+            meetingRepository.delete(meeting);
+        }
     }
+
 
     public List<MemberResponse> getMeetingAttendees(int meetingId) {
         List<MeetingAttendee> meetingAttendees = meetingAttendeeRepository.findAllByMeeting(meetingRepository.findById(meetingId).get());
@@ -146,7 +153,7 @@ public class MeetingService {
     }
 
     public List<MeetingResponseWithId> findAllByOrderByMeetingDateDesc() {
-        List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateAsc();
+        List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateDesc();
         return meetings.stream()
                 .map(this::buildMeetingResponseWithId)
                 .collect(Collectors.toList());
