@@ -1,7 +1,6 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.entity.ApiResponse;
-import com.ses.ppk.entity.JsonMessage;
+import com.ses.ppk.entity.CustomApiResponse;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ChangePasswordRequest;
 import com.ses.ppk.templates.UserFullRequest;
@@ -36,7 +35,7 @@ public class UserController {
     ) {
         userService.toAdmin(connectedUser);
 
-        ApiResponse errorResponse = new ApiResponse(HttpStatus.OK.value(), "Berhasil mengganti role menjadi admin");
+        CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.OK.value(), "Berhasil mengganti role menjadi admin");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -49,7 +48,7 @@ public class UserController {
             return ResponseEntity.ok(userResponse.get());
         } else {
             String errorMessage = "User not found with username: " + username;
-            ApiResponse errorResponse = new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage);
+            CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
@@ -77,12 +76,12 @@ public class UserController {
 
             if (errorMessage != null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+                        .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
             }
 
             if (!userService.userExists(userRequest.getUsername())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new ApiResponse(HttpStatus.CONFLICT.value(), "New username has been used by someone else"));
+                        .body(new CustomApiResponse(HttpStatus.CONFLICT.value(), "New username has been used by someone else"));
             }
 
             UserResponse userResponse = userService.editUser(userOptional.get(), userRequest);
@@ -91,7 +90,7 @@ public class UserController {
         } else {
             String errorMessage = "User not found with username: " + username;
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage));
+                    .body(new CustomApiResponse(HttpStatus.NOT_FOUND.value(), errorMessage));
         }
     }
 
@@ -102,26 +101,26 @@ public class UserController {
 
         if (userOptional.isPresent()) {
             userService.deleteUser(username);
-            ApiResponse mesage = new ApiResponse(HttpStatus.OK.value(), "Berhasil menghapus user");
+            CustomApiResponse mesage = new CustomApiResponse(HttpStatus.OK.value(), "Berhasil menghapus user");
             return ResponseEntity.status(HttpStatus.OK).body(mesage);
 
         } else {
-            ApiResponse errorResponse = new ApiResponse(HttpStatus.NOT_FOUND.value(), "User not found");
+            CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.NOT_FOUND.value(), "User not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     @PatchMapping
-    public ResponseEntity<ApiResponse> changePassword(
+    public ResponseEntity<CustomApiResponse> changePassword(
             @RequestBody ChangePasswordRequest request,
             Principal connectedUser
     ) {
         String message = userService.changePassword(request, connectedUser);
 
         if (message.equals("Password has been changed")) {
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), message));
+            return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), message));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), message));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), message));
         }
     }
 

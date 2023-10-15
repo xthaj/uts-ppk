@@ -1,11 +1,11 @@
 package com.ses.ppk.entity;
 
-public class ApiResponse {
+public class CustomApiResponse {
 
     private int code;
     private String message;
 
-    public ApiResponse(int code, String message) {
+    public CustomApiResponse(int code, String message) {
         this.code = code;
         this.message = message;
     }

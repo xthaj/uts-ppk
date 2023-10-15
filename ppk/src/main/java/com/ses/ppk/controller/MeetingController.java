@@ -1,10 +1,9 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.entity.ApiResponse;
+import com.ses.ppk.entity.CustomApiResponse;
 import com.ses.ppk.entity.Meeting;
 import com.ses.ppk.entity.MeetingAttendee;
 import com.ses.ppk.entity.User;
-import com.ses.ppk.service.AuthenticationService;
 import com.ses.ppk.service.MeetingService;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.*;
@@ -19,7 +18,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/meetings")
@@ -38,7 +36,7 @@ public class MeetingController {
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruangan harus berada antara gedung 2 atau 3, lantai yang sesuai, dan nomor ruang yang sesuai"));
+                .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruangan harus berada antara gedung 2 atau 3, lantai yang sesuai, dan nomor ruang yang sesuai"));
     }
 
     //works
@@ -65,15 +63,15 @@ public class MeetingController {
 
                 if (errorMessage != null) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
+                            .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
                 }
 
                 Meeting meeting = meetingService.getMeeting(id);
                 return ResponseEntity.ok(meetingService.editMeeting(meeting, request));
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruang is incorrect."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Ruang is incorrect."));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Meeting not found."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), "Meeting not found."));
         }
 
     }
@@ -131,7 +129,7 @@ public class MeetingController {
             @PathVariable int id
     ) {
         meetingService.deleteMeeting(id);
-        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Meeting deleted successfully"));
+        return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), "Meeting deleted successfully"));
     }
 
     //works
@@ -142,7 +140,7 @@ public class MeetingController {
     ) {
         if (meetingService.checkMeetingExists(id)) {
             String message = meetingService.attendMeeting(id, connectedUser);
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), message));
+            return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), message));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");
         }
@@ -165,7 +163,7 @@ public class MeetingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         } else if (meetingService.checkMeetingAttendeeExists(meeting.get(), user.get())) {
             meetingService.deleteMeetingAttendee(meetingAttendee.get());
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Absensi berhasil dihapus"));
+            return ResponseEntity.ok(new CustomApiResponse(HttpStatus.OK.value(), "Absensi berhasil dihapus"));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Absensi tidak ditemukan");
         }
