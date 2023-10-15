@@ -83,18 +83,18 @@ public class MeetingController {
     //filter works yippeee
     @GetMapping
     public ResponseEntity<?> getMeetings(
-            @RequestParam(name = "sort", defaultValue = "asc") String sortOrder,
+            @RequestParam(name = "sort", defaultValue = "desc") String sortOrder,
             @RequestParam(name = "start_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
             @RequestParam(name = "end_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end_date
     ) {
-        List<MeetingResponse> meetings = new ArrayList<>();
+        List<MeetingResponseWithId> meetings = new ArrayList<>();
 
         if (start_date != null && end_date != null) {
             meetings = meetingService.getMeetingsByDateRange(start_date, end_date);
-        } else if ("desc".equalsIgnoreCase(sortOrder)) {
-            meetings = meetingService.findAllByOrderByMeetingDateDesc();
-        } else {
+        } else if ("asc".equalsIgnoreCase(sortOrder)) {
             meetings = meetingService.findAllByOrderByMeetingDateAsc();
+        } else {
+            meetings = meetingService.findAllByOrderByMeetingDateDesc();
         }
 
         return ResponseEntity.ok(meetings);

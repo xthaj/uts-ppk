@@ -9,10 +9,7 @@ import com.ses.ppk.exception.UserNotFoundException;
 import com.ses.ppk.repository.MeetingAttendeeRepository;
 import com.ses.ppk.repository.MeetingRepository;
 import com.ses.ppk.repository.UserRepository;
-import com.ses.ppk.templates.CreateMeetingRequest;
-import com.ses.ppk.templates.EditMeetingRequest;
-import com.ses.ppk.templates.MeetingResponse;
-import com.ses.ppk.templates.MemberResponse;
+import com.ses.ppk.templates.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -55,6 +52,16 @@ public class MeetingService {
 
     public MeetingResponse buildMeetingResponse(Meeting meeting) {
         return MeetingResponse.builder()
+                .meetingName(meeting.getMeetingName())
+                .meetingDate(dateFormatter(meeting.getMeetingDate()))
+                .ruang(meeting.getRuang())
+                .meetingSummary(meeting.getMeetingSummary())
+                .build();
+    }
+
+    public MeetingResponseWithId buildMeetingResponseWithId(Meeting meeting) {
+        return MeetingResponseWithId.builder()
+                .meetingId(meeting.getMeetingId())
                 .meetingName(meeting.getMeetingName())
                 .meetingDate(dateFormatter(meeting.getMeetingDate()))
                 .ruang(meeting.getRuang())
@@ -131,26 +138,26 @@ public class MeetingService {
         return attendeesInfo;
     }
 
-    public List<MeetingResponse> findAllByOrderByMeetingDateAsc() {
+    public List<MeetingResponseWithId> findAllByOrderByMeetingDateAsc() {
         List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateAsc();
         return meetings.stream()
-                .map(this::buildMeetingResponse)
+                .map(this::buildMeetingResponseWithId)
                 .collect(Collectors.toList());
     }
 
-    public List<MeetingResponse> findAllByOrderByMeetingDateDesc() {
+    public List<MeetingResponseWithId> findAllByOrderByMeetingDateDesc() {
         List<Meeting> meetings = meetingRepository.findTop10ByOrderByMeetingDateAsc();
         return meetings.stream()
-                .map(this::buildMeetingResponse)
+                .map(this::buildMeetingResponseWithId)
                 .collect(Collectors.toList());
 
     }
 
-    public List<MeetingResponse> getMeetingsByDateRange(LocalDate startDate, LocalDate endDate) {
+    public List<MeetingResponseWithId> getMeetingsByDateRange(LocalDate startDate, LocalDate endDate) {
         List<Meeting> meetings = meetingRepository.findByMeetingDateBetween(startDate, endDate);
 
         return meetings.stream()
-                .map(this::buildMeetingResponse)
+                .map(this::buildMeetingResponseWithId)
                 .collect(Collectors.toList());
     }
 
