@@ -6,6 +6,7 @@ import com.ses.ppk.templates.ChangePasswordRequest;
 import com.ses.ppk.templates.UserFullRequest;
 import com.ses.ppk.templates.UserResponse;
 import com.ses.ppk.entity.User;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
 

@@ -7,6 +7,7 @@ import com.ses.ppk.entity.User;
 import com.ses.ppk.service.MeetingService;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/meetings")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class MeetingController {
     private final MeetingService meetingService;
     private final UserService userService;

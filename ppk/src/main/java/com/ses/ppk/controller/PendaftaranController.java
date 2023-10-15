@@ -6,6 +6,7 @@ import com.ses.ppk.entity.User;
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ApplyRequest;
 import com.ses.ppk.templates.UserResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/applicants")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class PendaftaranController {
     private final UserService pendaftaranService;
 
