@@ -32,11 +32,6 @@ public class UserController {
 
     //works
     @Operation(summary = "Get all users")
-
-    @ApiResponse(responseCode = "200", description = "List of users",
-            content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
-    @GetMapping
-    @Operation(summary = "Get all users")
     @ApiResponse(responseCode = "200", description = "List of users",
             content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
     public ResponseEntity<?> findAllUsers() {
