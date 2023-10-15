@@ -1,6 +1,8 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.templates.CustomApiResponse;
+
+import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ChangePasswordRequest;
 import com.ses.ppk.templates.UserFullRequest;
@@ -10,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +26,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
 
@@ -31,7 +36,11 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "List of users",
             content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
     @GetMapping
-    public ResponseEntity<List<UserResponse>> findAllUsers() {
+    @Operation(summary = "Get all users")
+    @ApiResponse(responseCode = "200", description = "List of users",
+            content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
+    public ResponseEntity<?> findAllUsers() {
+
         List<UserResponse> userResponses = userService.findAllUsers();
         return ResponseEntity.ok(userResponses);
     }
@@ -86,6 +95,10 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @PutMapping("/{username}")
     public ResponseEntity<?> editUser(
             @PathVariable String username,
@@ -111,7 +124,7 @@ public class UserController {
                         .body(new CustomApiResponse(HttpStatus.BAD_REQUEST.value(), errorMessage));
             }
 
-            if (!userService.userExists(userRequest.getUsername())) {
+            if ((userRequest.getUsername() != userOptional.get().getUsername()) &&  (userService.userExists(userRequest.getUsername()))) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(new CustomApiResponse(HttpStatus.CONFLICT.value(), "New username has been used by someone else"));
             }
@@ -134,6 +147,10 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @DeleteMapping("/{username}")
     public ResponseEntity<?> deleteUser(@PathVariable String username) {
         Optional<User> userOptional = userService.findUser(username);

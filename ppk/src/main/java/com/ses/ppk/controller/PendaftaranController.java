@@ -1,6 +1,8 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.templates.CustomApiResponse;
+
+import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.entity.StatusKeanggotaan;
 import com.ses.ppk.entity.User;
 import com.ses.ppk.service.UserService;
@@ -10,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +26,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/applicants")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class PendaftaranController {
     private final UserService pendaftaranService;
 
@@ -84,6 +89,10 @@ public class PendaftaranController {
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @PatchMapping("/{username}")
     public ResponseEntity<?> acceptApplicant(@PathVariable String username) {
         Optional<User> userOptional = pendaftaranService.findUser(username);
@@ -117,6 +126,10 @@ public class PendaftaranController {
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @DeleteMapping("/{username}")
     public ResponseEntity<?> declineApplicant(@PathVariable String username) {
         Optional<User> userOptional = pendaftaranService.findUser(username);

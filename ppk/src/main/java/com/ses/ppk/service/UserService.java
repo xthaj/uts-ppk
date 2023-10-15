@@ -80,8 +80,14 @@ public class UserService {
     public UserResponse editUser(User user, UserFullRequest userRequest) {
         user.setUsername(userRequest.getUsername());
         user.setNama(userRequest.getNama());
+
         user.setKelas(userRequest.getKelas());
-        user.setDivisi(Divisi.valueOf(userRequest.getDivisi()));
+
+        if (userRequest.getDivisi() != null) {
+            user.setDivisi(Divisi.valueOf(userRequest.getDivisi()));
+        } else {
+            user.setDivisi(null);
+        }
 
         user.setRole(Role.valueOf(userRequest.getRole()));
         user.setStatusKeanggotaan(StatusKeanggotaan.valueOf(userRequest.getStatusKeanggotaan()));
@@ -91,6 +97,7 @@ public class UserService {
 
         return updatedUserResponse;
     }
+
 
 
     public void deleteUser(String username) {

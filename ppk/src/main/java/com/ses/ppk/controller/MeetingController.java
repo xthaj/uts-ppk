@@ -1,6 +1,7 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.templates.CustomApiResponse;
+import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.entity.Meeting;
 import com.ses.ppk.entity.MeetingAttendee;
 import com.ses.ppk.entity.User;
@@ -11,6 +12,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -26,6 +30,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/meetings")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class MeetingController {
     private final MeetingService meetingService;
     private final UserService userService;
@@ -38,6 +43,10 @@ public class MeetingController {
     @ApiResponse(responseCode = "400", description = "Invalid input",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @PostMapping
     public ResponseEntity<?> createMeeting (
             @RequestBody CreateMeetingRequest request
@@ -61,6 +70,10 @@ public class MeetingController {
     @ApiResponse(responseCode = "404", description = "Meeting not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @PutMapping("/{id}")
     public ResponseEntity<?> editMeeting (
             @PathVariable int id,
@@ -167,6 +180,10 @@ public class MeetingController {
     @ApiResponse(responseCode = "404", description = "Meeting not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
+    @ApiResponse(responseCode = "403", description = "Role not sufficient",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
+    )
+
     @DeleteMapping ("/{id}")
     public ResponseEntity<?> deleteMeeting(
             @PathVariable int id

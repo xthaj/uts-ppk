@@ -1,6 +1,8 @@
 package com.ses.ppk.controller;
 
-import com.ses.ppk.templates.CustomApiResponse;
+
+import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.AuthenticationRequest;
 import com.ses.ppk.templates.AuthenticationResponse;
