@@ -1,6 +1,8 @@
 package com.ses.ppk.controller;
 
+
 import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.AuthenticationRequest;
 import com.ses.ppk.templates.AuthenticationResponse;
@@ -40,7 +42,7 @@ public class AuthenticationController {
         if (userService.userExists(request.getUsername())) {
             return ResponseEntity.ok(service.register(request));
         } else {
-            CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.CONFLICT.value(), "Username is not unique");
+            CustomApiResponse errorResponse = new CustomApiResponse(HttpStatus.CONFLICT.value(), "Username has been used by someone else.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
     }

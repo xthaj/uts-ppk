@@ -1,6 +1,8 @@
 package com.ses.ppk.controller;
 
+
 import com.ses.ppk.entity.CustomApiResponse;
+
 import com.ses.ppk.service.UserService;
 import com.ses.ppk.templates.ChangePasswordRequest;
 import com.ses.ppk.templates.UserFullRequest;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +31,16 @@ public class UserController {
     private final UserService userService;
 
     //works
+    @Operation(summary = "Get all users")
+
+    @ApiResponse(responseCode = "200", description = "List of users",
+            content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
     @GetMapping
     @Operation(summary = "Get all users")
     @ApiResponse(responseCode = "200", description = "List of users",
             content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))})
     public ResponseEntity<?> findAllUsers() {
+
         List<UserResponse> userResponses = userService.findAllUsers();
         return ResponseEntity.ok(userResponses);
     }
@@ -43,7 +51,7 @@ public class UserController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
     )
     @GetMapping("to-admin")
-    public ResponseEntity<?> toAdmin(
+    public ResponseEntity<CustomApiResponse> toAdmin(
             Principal connectedUser
     ) {
         userService.toAdmin(connectedUser);
@@ -90,6 +98,7 @@ public class UserController {
     @ApiResponse(responseCode = "403", description = "Role not sufficient",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
     )
+
     @PutMapping("/{username}")
     public ResponseEntity<?> editUser(
             @PathVariable String username,
@@ -141,6 +150,7 @@ public class UserController {
     @ApiResponse(responseCode = "403", description = "Role not sufficient",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))
     )
+
     @DeleteMapping("/{username}")
     public ResponseEntity<?> deleteUser(@PathVariable String username) {
         Optional<User> userOptional = userService.findUser(username);
