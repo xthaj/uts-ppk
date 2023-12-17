@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberResponse {
+    private String username;
     private String name;
     private Divisi divisi;
     private String time;

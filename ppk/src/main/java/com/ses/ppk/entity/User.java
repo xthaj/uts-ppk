@@ -35,7 +35,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Divisi divisi;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<MeetingAttendee> meetingsAttended = new HashSet<>();
 
     @Override

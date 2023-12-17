@@ -5,7 +5,6 @@ import com.ses.ppk.entity.MeetingAttendee;
 import com.ses.ppk.entity.StatusKeanggotaan;
 import com.ses.ppk.entity.User;
 import com.ses.ppk.exception.MeetingNotFoundException;
-import com.ses.ppk.exception.UserNotFoundException;
 import com.ses.ppk.repository.MeetingAttendeeRepository;
 import com.ses.ppk.repository.MeetingRepository;
 import com.ses.ppk.repository.UserRepository;
@@ -22,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,7 +38,7 @@ public class MeetingService {
         String regexPattern = "^[2][2-6][1-8]$|^[3][2-4][1-8]$";
         return kelas.matches(regexPattern);
     }
-    public MeetingResponse createMeeting(CreateMeetingRequest request) {
+    public MeetingResponseWithId createMeeting(CreateMeetingRequest request) {
         Meeting meeting = new Meeting();
         meeting.setMeetingDate(LocalDate.now());
         meeting.setRuang(request.getRuang());
@@ -48,7 +46,7 @@ public class MeetingService {
         meeting.setMeetingSummary(request.getMeetingSummary());
         Meeting createdMeeting = meetingRepository.save(meeting);
 
-        return buildMeetingResponse(createdMeeting);
+        return buildMeetingResponseWithId(createdMeeting);
     }
 
     public MeetingResponse buildMeetingResponse(Meeting meeting) {
@@ -108,11 +106,11 @@ public class MeetingService {
                 .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
     }
 
-    public MeetingResponse getMeetingResponse(int id) {
+    public MeetingResponseWithId getMeetingResponse(int id) {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new MeetingNotFoundException("Meeting not found with ID: " + id));
 
-        return buildMeetingResponse(meeting);
+        return buildMeetingResponseWithId(meeting);
     }
 
     @Transactional
@@ -133,6 +131,7 @@ public class MeetingService {
         for (MeetingAttendee meetingAttendee : meetingAttendees) {
             User user = meetingAttendee.getUser();
             MemberResponse memberResponse = new MemberResponse();
+            memberResponse.setUsername(user.getUsername());
             memberResponse.setName(user.getNama());
             memberResponse.setDivisi(user.getDivisi());
 
@@ -195,7 +194,7 @@ public class MeetingService {
         meetingAttendeeRepository.delete(meetingAttendee);
     }
 
-    public MeetingResponse editMeeting(Meeting meeting, EditMeetingRequest request) {
+    public MeetingResponseWithId editMeeting(Meeting meeting, EditMeetingRequest request) {
         meeting.setRuang(request.getRuang());
         meeting.setMeetingName(request.getMeetingName());
         meeting.setMeetingSummary(request.getMeetingSummary());
@@ -203,7 +202,7 @@ public class MeetingService {
 
         Meeting updatedMeeting = meetingRepository.save(meeting);
 
-        return buildMeetingResponse(updatedMeeting);
+        return buildMeetingResponseWithId(updatedMeeting);
     }
 
 }

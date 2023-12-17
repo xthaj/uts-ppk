@@ -62,7 +62,7 @@ public class MeetingController {
     //works
     @Operation(summary = "Edit a meeting by ID")
     @ApiResponse(responseCode = "200", description = "Meeting edited successfully",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponse.class))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponseWithId.class))
     )
     @ApiResponse(responseCode = "400", description = "Invalid input",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
@@ -140,7 +140,7 @@ public class MeetingController {
     //works
     @Operation(summary = "Get a meeting by ID")
     @ApiResponse(responseCode = "200", description = "Meeting information",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponse.class))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MeetingResponseWithId.class))
     )
     @ApiResponse(responseCode = "404", description = "Meeting not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class))
@@ -153,7 +153,7 @@ public class MeetingController {
         System.out.println(meetingService.checkMeetingExists(id));
 
         if (meetingService.checkMeetingExists(id)) {
-            MeetingResponse foundMeeting = meetingService.getMeetingResponse(id);
+            MeetingResponseWithId foundMeeting = meetingService.getMeetingResponse(id);
             return ResponseEntity.ok(foundMeeting);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");

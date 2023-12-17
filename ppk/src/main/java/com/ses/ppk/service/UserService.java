@@ -1,14 +1,12 @@
 package com.ses.ppk.service;
 
-import com.ses.ppk.entity.Divisi;
-import com.ses.ppk.entity.Role;
+import com.ses.ppk.entity.*;
+import com.ses.ppk.repository.MeetingAttendeeRepository;
 import com.ses.ppk.repository.UserRepository;
 import com.ses.ppk.templates.ApplyRequest;
 import com.ses.ppk.templates.ChangePasswordRequest;
 import com.ses.ppk.templates.UserFullRequest;
 import com.ses.ppk.templates.UserResponse;
-import com.ses.ppk.entity.User;
-import com.ses.ppk.entity.StatusKeanggotaan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final MeetingAttendeeRepository meetingAttendeeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public Optional<User> findUser(String username) {
@@ -105,9 +104,20 @@ public class UserService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            // Fetch all MeetingAttendee records associated with the user
+            List<MeetingAttendee> meetings = meetingAttendeeRepository.findAllByUser(user);
+
+            // Delete each MeetingAttendee record
+            for (MeetingAttendee meetingAttendee : meetings) {
+                meetingAttendeeRepository.delete(meetingAttendee);
+            }
+
+            // Finally, delete the user
             userRepository.delete(user);
         }
     }
+
 
     public void toAdmin(Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -172,7 +182,7 @@ public class UserService {
     }
 
     public boolean checkDivisi(String divisi) {
-        if (divisi == null) {
+        if (divisi == null || divisi =="") {
             return true; // Accept null values
         }
         try {

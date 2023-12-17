@@ -44,8 +44,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
-                                .requestMatchers(PUT, "api/v1/users/**").hasRole("ADMIN")
-                                .requestMatchers(DELETE, "api/v1/users/*").hasRole("ADMIN")
+//                                .requestMatchers(PUT, "api/v1/users/**").hasRole("ADMIN")
+//                                .requestMatchers(DELETE, "api/v1/users/*").hasRole("ADMIN")
                                 .requestMatchers(POST, "api/v1/meetings").hasRole("ADMIN")
                                 .requestMatchers(PUT, "api/v1/meetings/**").hasRole("ADMIN")
                                 .requestMatchers(DELETE, "api/v1/meetings/**").hasRole("ADMIN")
